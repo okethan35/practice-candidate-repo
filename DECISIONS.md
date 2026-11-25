@@ -23,3 +23,17 @@ The loop's own decisions are in `.claude/ralph/DECISIONS.md`.
 - Rule 46 (a 409 is not recorded): it is stopped before it runs, to prevent overlapping syncs, so there is nothing to record.
 - Rule 43 (test accessor, no route): the history is kept for later debugging, and showing it is deferred. The accessor exists only so the rules can be tested.
 - Rule 47 (no cap): memory is cleared on restart, and nobody needs a limit yet.
+
+## Phase 3: Gross-profit report
+
+- Rule 54 (burden from rounded pay): burden is then exactly 12% of the pay shown, and it can never land on a half cent. Rejected: 12% of unrounded pay, which can differ by 1 cent.
+- Rule 54 (exact decimal rounding): naive float rounding gives 100 cents for 1 hour × 1.005. Rule 7 allows rates with any number of decimals.
+- Rules 51 and 53 (clients with no placements get no row): a week with no data must show "No records found", not every client at $0.
+- Rule 52 (placements without `externalId` count): rule 14 treats them as real placements.
+- Rule 58 (a malformed week returns empty rows, not 400): the owner prefers the soft path. The page shows the format hint (rule 65), so a typo is still visible. Rejected: `400`.
+- Rule 57 (an empty week means all weeks): a blank week input on the page means all weeks.
+- Rule 59 (tie-break by name, then id): gives a fixed, predictable order. `clientId` decides between equal names.
+- Rules 63 and 64 ("Sync now" in this phase): no placements are seeded, so the table stays empty until a sync, and the button already existed with `t_alpha` hardcoded. Showing last-synced is deferred to the web page phase.
+- Rule 69 (no React component tests): component tests would need new dependencies and changes to the protected `vitest.config.ts` and `tsconfig.json`.
+- Pagination cut: there is one row per client, so the list is bounded by the client count, and pagination would break the `{ rows }` contract.
+- Rule 56 (fixture totals pinned in tests): this replaces the markdown hand-check report deferred in Phase 1. The owner judged simple math tests sufficient.
