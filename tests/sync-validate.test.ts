@@ -83,6 +83,10 @@ describe("clientKey", () => {
     expect(clientKey("AT&T")).toBe("att");
     expect(clientKey("Café")).toBe("café");
   });
+  it("removes punctuation before trimming", () => {
+    expect(clientKey("Acme Corp .")).toBe("acme corp");
+    expect(clientKey(". Acme Corp")).toBe("acme corp");
+  });
 });
 
 describe("clientDisplayName", () => {
