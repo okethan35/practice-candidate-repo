@@ -12,5 +12,9 @@ export function seed(): Store {
       { id: "c_beta_initech", tenantId: "t_beta", name: "Initech" },
     ],
     placements: [],
+    syncState: {
+      t_alpha: { lastSyncedAt: null, latestRun: null },
+      t_beta: { lastSyncedAt: null, latestRun: null },
+    },
   };
 }
