@@ -165,3 +165,44 @@ describe("apply", () => {
     expect(s).toEqual(before);
   });
 });
+
+describe("apply (reviewer findings)", () => {
+  it("does not link to a client that exists only in another tenant", () => {
+    const s = createStore();
+    const r = apply(s, "t_alpha", [{ ...base, external_id: "I-1", client_name: "Initech" }]);
+    expect(r.inserted).toBe(1);
+    const p = s.placements.find((x) => x.externalId === "I-1")!;
+    expect(p.clientId).not.toBe("c_beta_initech");
+    const c = s.clients.find((x) => x.id === p.clientId)!;
+    expect(c).toMatchObject({ tenantId: "t_alpha", name: "Initech" });
+  });
+
+  it("never renames an existing client", () => {
+    const s = createStore();
+    apply(s, "t_alpha", alpha());
+    expect(s.clients.find((c) => c.id === "c_alpha_acme")!.name).toBe("Acme Corp");
+  });
+
+  it("counts a client change as updated and relinks the placement", () => {
+    const s = createStore();
+    apply(s, "t_alpha", alpha());
+    const globex = s.placements.find((p) => p.externalId === "A-1003")!.clientId;
+    expect(globex).not.toBe("c_alpha_acme");
+    const r = apply(s, "t_alpha", [{ ...alpha()[2], client_name: "Acme Corp" }]);
+    expect(r).toEqual({ inserted: 0, updated: 1, unchanged: 0, failed: 0 });
+    expect(s.placements.find((p) => p.externalId === "A-1003")!.clientId).toBe("c_alpha_acme");
+  });
+
+  it.each([
+    ["bill_rate", "billRate", 99],
+    ["pay_rate", "payRate", 5],
+    ["week_start", "weekStart", "2026-11-16"],
+    ["worker_name", "workerName", "Someone Else"],
+  ] as const)("counts a %s change as updated", (field, prop, value) => {
+    const s = createStore();
+    apply(s, "t_alpha", alpha());
+    const r = apply(s, "t_alpha", [{ ...alpha()[0], [field]: value }]);
+    expect(r).toEqual({ inserted: 0, updated: 1, unchanged: 0, failed: 0 });
+    expect((s.placements.find((p) => p.externalId === "A-1001")! as any)[prop]).toBe(value);
+  });
+});
