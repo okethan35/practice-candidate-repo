@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createSyncButton } from "./syncButton";
 import { getReport, postSync } from "./api";
 import { checkWeek, createReportLoader, formatCents, type ReportView } from "./report";
@@ -24,7 +24,10 @@ export function App() {
     [],
   );
 
-  const reload = () => void loader.load(weekRef.current);
+  const reload = useCallback(() => {
+    setWeekMessage(null);
+    void loader.load(weekRef.current);
+  }, [loader]);
 
   const button = useMemo(
     () =>
@@ -34,12 +37,12 @@ export function App() {
             return await postSync((u, i) => fetch(u, i), tenantRef.current);
           } finally {
             // rule 64/68: reload for the tenant picked when the response arrives
-            void loader.load(weekRef.current);
+            reload();
           }
         },
         () => setTick((n) => n + 1),
       ),
-    [loader],
+    [loader, reload],
   );
 
   useEffect(() => {
@@ -53,7 +56,6 @@ export function App() {
       setWeekMessage(check.message);
       return;
     }
-    setWeekMessage(null);
     weekRef.current = check.kind === "valid" ? check.week : "";
     reload();
   };
