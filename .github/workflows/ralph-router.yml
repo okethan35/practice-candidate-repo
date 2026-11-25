@@ -1,0 +1,49 @@
+name: ralph-router
+
+# The Ralph Loop reconciler (.claude/ralph/SPEC.md rules 21-37). It is the only thing
+# that claims issues or starts routines. Every run recomputes from current GitHub state,
+# so it does not matter which event started it or whether a queued run was dropped.
+# Fire tokens live only in Actions secrets; the agents hold no credentials for firing.
+#
+# Label changes made here with GITHUB_TOKEN do not trigger new workflow runs, so the
+# reconciler never re-triggers itself. There is no pull_request trigger: a merged PR with
+# "Closes #N" closes its issue, and that `issues: closed` event runs the reconciler.
+
+on:
+  issues:
+    types: [labeled, unlabeled, closed, reopened]
+  workflow_run: # CI finished: a queued review may now be ready (rule 32)
+    workflows: [ci] # must be the `name:` of the repo's CI workflow (SETUP.md)
+    types: [completed]
+  schedule:
+    - cron: "17 * * * *" # hourly backstop (rule 21); events start runs immediately
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+  checks: read
+
+concurrency:
+  group: ralph-reconciler
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    # The fire tokens are secrets of this environment, which only the default branch can use
+    # (rule 37), so a workflow run from any other branch cannot read them.
+    environment: ralph
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: # issues, schedule and pull_request_target all check out the default branch
+          persist-credentials: false
+      - name: Reconcile
+        run: python3 .claude/ralph/reconcile.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WRITER_ROUTINE_ID: ${{ vars.RALPH_WRITER_ROUTINE_ID }} # set by .claude/ralph/bootstrap.sh
+          REVIEWER_ROUTINE_ID: ${{ vars.RALPH_REVIEWER_ROUTINE_ID }}
+          WRITER_TOKEN: ${{ secrets.RALPH_WRITER_FIRE_TOKEN }}
+          REVIEWER_TOKEN: ${{ secrets.RALPH_REVIEWER_FIRE_TOKEN }}

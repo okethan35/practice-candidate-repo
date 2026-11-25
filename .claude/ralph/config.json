@@ -1,0 +1,37 @@
+{
+  "owner": "okethan35",
+  "repo": "okethan35/practice-candidate-repo",
+  "default_branch": "main",
+  "gates": [
+    "npm run typecheck",
+    "npm test"
+  ],
+  "ci_check": "test",
+  "protected_paths": [
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "vitest.config.ts",
+    "TASK.md"
+  ],
+  "test_globs": [
+    "tests/**/*.test.ts",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/test_*.*",
+    "**/*_test.*"
+  ],
+  "max_writers": 3,
+  "claim_ttl_hours": 2,
+  "max_review_rounds": 2,
+  "spec_file": "SPEC.md",
+  "decisions_file": "DECISIONS.md",
+  "lessons_file": "LESSONS.md",
+  "labels": {
+    "queued": "ralph-loop",
+    "writing": "in-progress",
+    "review_queued": "needs-review",
+    "reviewing": "in-review",
+    "human": "human-review"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "t_alpha": [
+    { "external_id": "A-1001", "client_name": "Acme Corp", "worker_name": "Sam Ortiz", "bill_rate": 42.1, "pay_rate": 28.7, "hours": 37.5, "week_start": "2026-11-02" },
+    { "external_id": "A-1002", "client_name": "ACME CORP", "worker_name": "Dana Lee", "bill_rate": 19.99, "pay_rate": 14.99, "hours": 7.25, "week_start": "2026-11-02" },
+    { "external_id": "A-1003", "client_name": "Globex", "worker_name": "Priya Nair", "bill_rate": 55, "pay_rate": 36, "hours": 40, "week_start": "2026-11-02" },
+    { "external_id": "A-1004", "client_name": "Globex", "worker_name": "Tom Reyes", "bill_rate": 48.5, "pay_rate": 31.25, "hours": 32, "week_start": "2026-11-09" },
+    { "external_id": "A-1005", "client_name": "  Acme Corp ", "worker_name": "Jo Kim", "bill_rate": 38, "pay_rate": 26, "hours": 24.5, "week_start": "2026-11-09" },
+    { "external_id": "A-1006", "client_name": "Globex", "worker_name": "Lee Wu", "pay_rate": 30, "hours": 10, "week_start": "2026-11-09" }
+  ],
+  "t_beta": [
+    { "external_id": "B-2001", "client_name": "Initech", "worker_name": "Riya Shah", "bill_rate": 60, "pay_rate": 40, "hours": 38, "week_start": "2026-11-02" },
+    { "external_id": "B-2002", "client_name": "Initech", "worker_name": "Marco Diaz", "bill_rate": 52.5, "pay_rate": 35, "hours": 40, "week_start": "2026-11-09" },
+    { "external_id": "B-2003", "client_name": "Hooli", "worker_name": "Ana Cruz", "bill_rate": 47, "pay_rate": 30.1, "hours": 36, "week_start": "2026-11-02" }
+  ]
+}

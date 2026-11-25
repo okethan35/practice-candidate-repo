@@ -1,0 +1,24 @@
+node_modules
+dist
+.env
+web/node_modules
+web/dist
+
+# Secrets and keys (Ralph Loop spec rule 11)
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+id_ecdsa*
+id_dsa*
+credentials.json
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Python bytecode (guard tests)
+__pycache__/

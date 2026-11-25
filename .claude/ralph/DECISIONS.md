@@ -1,0 +1,18 @@
+# Ralph Loop - decision log
+
+- **Firing lives in a GitHub Action** (rules 21-37): routines cannot hold fire secrets (a routine's network secrets cannot target Anthropic hosts).
+- **Claims are serialized in the reconciler, not raced by agents** (22, 28-30): an early version let three writers run on one issue at once; a later remove-the-label-first claim still left the writer cap racy, because fires arrive about a second apart; and most writer fires found nothing to do.
+- **Per-issue lock instead of repository interaction limits** (6): interaction limits expire after at most six months and need an admin token to renew.
+- **Trust by author, not by app provenance** (5): local manual runs post with no `performed_via_github_app`, so a provenance check would reject the owner's own fallback runs.
+- **Decisions must be unedited** (7): owner and agents share one GitHub identity, and editing a comment keeps its author.
+- **Merge blocking is in every session; path blocking is cloud-only** (13-14): the owner merges in the GitHub UI and never through Claude, but edits `.claude/` locally. Self-merge stays a residual risk, because an injected agent could call the API directly; a separate bot identity would remove it and was deferred.
+- **Bash pattern rules are a speed bump; GitHub rules are the boundary** (14, 16-18): permission patterns match command text, so `git -C . push --force` slips past them.
+- **Branches are exactly `issue-<n>`** (40): LLM-made slugs differed between runs (one issue once got three different branches), and trust checks need a predictable name.
+- **A failed fire reverts its claim** (31): a claimed issue must never exist without a run behind it.
+- **Two expiries escalate** (25): rejected runs (for example, at a usage limit) would otherwise claim and release forever.
+- **Writer on Sonnet, reviewer on Opus** (60): issues are tightly specified and gated by CI; review is where judgment pays.
+- **ralph-guard has its own Actions event policy** (21, 61): GitHub blocks `pull_request_target` by default on public repositories from 2026-12-02. The policy allows that event for `ralph-guard.yml` only, and the router dropped its pull-request trigger, so nothing else needs it.
+- **The loop is bounded in three places** (28, 46, 53): a fix round that produces no new commit used to look like the same round forever. The writer and reviewer now stop on it, and the reconciler caps writer runs per issue as a backstop that doesn't depend on either prompt.
+- **Fire tokens live in a default-branch-only Environment** (37, 61): an agent that can push a branch could otherwise run its own copy of a workflow (`workflow_dispatch --ref`, or an `on: push` workflow) with repository secrets and print them. Private repos on the Free plan have no environments, so there this stays a documented residual.
+- **Hourly cron** (21): label, close and CI events already start the reconciler immediately, so the schedule is only a backstop. Hourly halves the Actions minutes a private repo spends (about 720 a month instead of 1,440).
+- **Narrow key patterns** (11, 12): `id_*` also matched ordinary files such as `id_utils.py`; only real SSH key names are denied.
