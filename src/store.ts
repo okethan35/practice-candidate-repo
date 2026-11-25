@@ -20,6 +20,7 @@ export interface Placement {
   payRate: number; // dollars per hour
   hours: number;
   weekStart: string; // YYYY-MM-DD
+  externalId?: string; // set for placements synced from the ATS
 }
 
 export interface Store {
