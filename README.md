@@ -20,6 +20,11 @@ Put `ATS_API_KEY=<your key>` in a `.env` file, then run `npm run dev`. The serve
 3. Run `npm install`.
 4. Run `npm run dev`.
 
+## Week comparison and appearance
+
+- **`vs prior week` column.** The column compares each client's gross profit with the week 7 days earlier. It shows only when a week is selected, and shows `—` for a client with no prior-week row.
+- **Appearance.** The page follows the system light or dark appearance. There is no toggle.
+
 ## What we cut
 
 - **Report pagination.** The gross-profit report returns every row in one response.
