@@ -37,3 +37,14 @@ The loop's own decisions are in `.claude/ralph/DECISIONS.md`.
 - Rule 69 (no React component tests): component tests would need new dependencies and changes to the protected `vitest.config.ts` and `tsconfig.json`.
 - Pagination cut: there is one row per client, so the list is bounded by the client count, and pagination would break the `{ rows }` contract.
 - Rule 56 (fixture totals pinned in tests): this replaces the markdown hand-check report deferred in Phase 1. The owner judged simple math tests sufficient.
+
+## Phase 4: Web page
+
+- Rules 82-84 (checkable design rules): the real bar is the owner judging the page looks good for the demo. These rules are the parts of that bar that can be tested. Charts were cut because the table already answers "who makes me the most money" with two clients per tenant.
+- Rule 72 (absolute time, not "3 minutes ago"): a fixed format is testable exactly and doesn't go stale on a demo screen.
+- Rule 73 (all four counts, zeros included): the failed count must never silently disappear. It is secondary text, so it stays quiet.
+- Rule 76 (7 calendar days, not "previous week with data"): needs no new endpoint. Rule 8 allows non-Monday weeks, so a gap simply shows `—`.
+- Rule 77 (rows from the selected week only): matches rule 62, so the table is the same as without the comparison, plus one column.
+- Rule 79 (prior-week failure is partial): the selected week's numbers are still correct and worth showing. Rejected: failing the whole table.
+- Rule 82 (no appearance toggle): follows the platform convention of honoring the system setting. Rejected: an in-app light/dark switch.
+- Run history display stays cut (rule 48 still holds).
