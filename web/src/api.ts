@@ -35,3 +35,13 @@ export async function postSync(
   });
   return parse(res);
 }
+
+export async function getStatus(
+  fetchFn: FetchFn,
+  tenant: string,
+): Promise<{ status: number; body: unknown }> {
+  const res = await fetchFn("/api/sync/status", {
+    headers: { "x-tenant-id": tenant },
+  });
+  return parse(res);
+}
