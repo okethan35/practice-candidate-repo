@@ -165,3 +165,31 @@ Each section has a heading and numbered rules; each rule is one testable stateme
 
 ## README
 70. The README states how to run the web app (`cd web`, `npm install`, `npm run dev`, with the API on port 3000). Under what was cut, it lists report pagination and money amounts beyond JavaScript's exact integer range (about $90 trillion). It keeps every phrase `tests/readme.test.ts` checks.
+
+# Phase 4: Web page (last-synced status, week comparison, design)
+
+## Last-synced status
+71. The page loads `GET /api/sync/status` on open, on a tenant change, and after any "Sync now" response, sending the picked tenant in `x-tenant-id`. Only the latest status request's response is shown (rule 68).
+72. `lastSyncedAt` is shown as `Last synced <date>`, formatted in US English in the browser's time zone as month abbreviation, day, year and 12-hour time, for example `Last synced Nov 25, 2026, 3:42 PM`. `lastSyncedAt: null` shows `Never synced`.
+73. When `lastRun` is not null, a secondary line below it shows `<inserted> inserted · <updated> updated · <unchanged> unchanged · <failed> failed`, all four counts in that order, zeros included. When `lastRun` is null the line is not shown.
+74. While a status request is pending, the status area shows `Loading…`. A non-200 response shows `Could not load sync status: <error>`, where `<error>` is the body's `error`, or `HTTP <status>` when there is none. A network failure shows `Could not load sync status: <message>`. A status error never hides or blocks the report.
+75. A "Sync now" response other than `200` shows `Sync failed: <error>` next to the button, with the same `<error>` rule as rule 74, for example `Sync failed: sync already in progress`. A network failure shows `Sync failed: <message>`. The message stays until the next "Sync now" click or tenant change. A `200` shows no message. The raw response body is never shown.
+
+## Week comparison
+76. When the applied week is a valid, non-blank date (rule 65), the page also requests the report for the date 7 calendar days earlier, across month and year boundaries: `2026-11-09` → `2026-11-02`, `2026-03-02` → `2026-02-23`, `2026-01-01` → `2025-12-25`. When all weeks are shown, no prior-week request is made and no comparison column is shown.
+77. With a week applied, the table has a `vs prior week` column after gross profit. Each row's value is its `grossProfitCents` minus the `grossProfitCents` of the prior-week row with the same `clientId`. A client with no prior-week row shows `—`. Rows and their order come from the selected week only. A client that appears only in the prior week has no row.
+78. The change is shown in US dollars like rule 67, with a sign: `-15520` → `-$155.20`, `1234` → `+$12.34`, `0` → `$0.00`.
+79. With a week applied, the page shows `Loading…` until both the selected-week and prior-week responses arrive. A selected-week failure shows rule 66's error and no table. If only the prior-week request fails, the table shows with `—` in every `vs prior week` cell and the note `Could not load prior week: <error>`, with the same `<error>` rule as rule 74. Rule 68's latest-request rule applies to the pair: a pair from an earlier load is discarded.
+80. With the default fixture after one sync of `t_alpha`, `week=2026-11-09` shows Globex `-$155.20` and Acme Corp `-$179.00`, and `week=2026-11-02` shows `—` for every client.
+
+## Tenant change
+81. A tenant change clears the last-synced status, the sync failure message, the report table and the prior-week note before the new requests are sent. Data from the previous tenant is never shown under the new tenant.
+
+## Design
+82. The page follows the system appearance through `prefers-color-scheme`, light and dark, and has no appearance toggle.
+83. At a viewport width of 360px the page has no horizontal scroll. The table scrolls horizontally inside its own container. Money columns are right-aligned and use tabular figures.
+84. Colors are defined as named light and dark tokens in `web/src/theme.ts`. Every text-and-background token pair the page uses has a contrast ratio of at least 4.5:1 in both appearances, checked by a test in `tests/`. Every interactive control shows a visible focus ring when it has keyboard focus.
+85. The last-synced formatting, the counts line, the prior-week date, the change computation and formatting, and the choice of what the status area and comparison column show live in plain `.ts` modules in `web/src/` and are tested from `tests/*.test.ts` (rule 69).
+
+## README
+86. The README states that the `vs prior week` column compares each client's gross profit with the week 7 days earlier and appears only when a week is selected, and that the page follows the system light or dark appearance. It keeps every phrase `tests/readme.test.ts` checks.
