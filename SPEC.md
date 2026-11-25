@@ -65,7 +65,7 @@ Each section has a heading and numbered rules; each rule is one testable stateme
 ## ATS failure
 22. If `fetchPlacements` rejects, the response is `502 { error: "ATS request failed: <error message>" }`. If it resolves to something that is not an array, the response is `502 { error: "ATS request failed: payload is not an array" }`.
 23. With `ATS_API_KEY` unset, the response is `502 { error: "ATS request failed: ATS auth failed: ATS_API_KEY is not set" }`.
-24. After a `502`, no placement or client is written or changed, no run is recorded, and the tenant's `lastSyncedAt` and latest run are unchanged.
+24. After a `502`, the store is unchanged: no placement, client, latest run or `lastSyncedAt` is written or changed. The attempt is added to the run history (rule 45).
 25. Sync applies changes only after it has processed the whole payload, so no request leaves a partial write.
 
 ## Concurrency
@@ -88,3 +88,28 @@ Each section has a heading and numbered rules; each rule is one testable stateme
     - data lives in memory and is lost on restart;
     - a stored record that comes back invalid keeps its last valid version and counts as `failed`;
     - client names are merged by rule 10's normalization (punctuation, case and whitespace).
+
+# Phase 2: Sync status (`GET /api/sync/status`)
+
+## Auth
+34. `GET /api/sync/status` without `x-tenant-id` returns `401 { error: "missing x-tenant-id" }`; with an unknown tenant it returns `403 { error: "unknown tenant" }`.
+35. Status never calls the ATS, takes the sync lock, or changes the store or the run history. The query string and body are ignored.
+
+## Response
+36. An authorized request returns `200 { lastSyncedAt, lastRun }` for the calling tenant. `lastSyncedAt` is the tenant's `lastSyncedAt` and `lastRun` is the tenant's latest run (rule 21), as `{ runId, inserted, updated, unchanged, failed, finishedAt }`.
+37. Before the tenant's first `200` sync, it returns `200 { lastSyncedAt: null, lastRun: null }`.
+38. After a `200` sync, `lastRun` equals that sync's response body plus its `finishedAt`, and `lastSyncedAt` equals `lastRun.finishedAt`. This holds when `failed > 0`, when every record failed, and for an empty payload (rule 20).
+39. After a `502`, status returns the same body as before the `502`: the previous successful run, or both fields `null` if there is none.
+40. Two status requests with no sync between them return identical bodies.
+41. While a sync for the tenant is in flight, status returns `200` with the state from before that sync. It never returns `409`.
+42. A `200` or `502` sync for `t_alpha` leaves `t_beta`'s status unchanged, and status never returns another tenant's data.
+
+## Run history
+43. Each app created by `createApp` keeps a per-tenant run history outside the store, oldest entry first, lost on restart. A new app starts with an empty history. `app.locals.syncRuns(tenantId)` returns a copy of that tenant's entries, or `[]` when there are none.
+44. Every `200` sync appends `{ runId, outcome: "success", inserted, updated, unchanged, failed, finishedAt }`, with the same values as the tenant's latest run.
+45. Every `502` sync appends `{ runId, outcome: "failed", error, finishedAt }`. `runId` comes from `newId`, `error` equals the `error` string in the `502` body, and `finishedAt` is an ISO 8601 string. The `502` body stays as in rule 22.
+46. `401`, `403` and `409` responses append nothing.
+47. A sync never appends to another tenant's history. The history has no size cap.
+
+## README
+48. The README states that every sync attempt that runs, ATS failures included, is kept in an in-memory run history that nothing displays yet.
