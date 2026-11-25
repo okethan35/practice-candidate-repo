@@ -13,7 +13,7 @@ export function placementsRouter(store: Store) {
   });
 
   router.get("/:id", (req, res) => {
-    const p = store.placements.find((x) => x.id === req.params.id);
+    const p = store.placements.find((x) => x.id === req.params.id && x.tenantId === req.tenantId);
     if (!p) return res.status(404).json({ error: "not found" });
     res.json({ ...p, grossProfit: grossProfit(p) });
   });
