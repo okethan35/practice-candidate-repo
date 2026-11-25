@@ -28,6 +28,13 @@ describe("placementCents (rule 54)", () => {
     // 100 cents pay -> 12; 125 -> 15; 1 cent -> 0; 5 cents -> 0.6 -> 1
     expect(placementCents({ hours: 1, billRate: 0, payRate: 0.05 }).burdenCents).toBe(1);
   });
+  it("burden uses the rounded pay, not the unrounded pay", () => {
+    // 1 h at 0.042: pay rounds to 4 cents; 12% of 4 = 0.48 -> 0 (unrounded 4.2 * 0.12 = 0.504 would give 1)
+    const r = placementCents({ hours: 1, billRate: 1, payRate: 0.042 });
+    expect(r.payCents).toBe(4);
+    expect(r.burdenCents).toBe(0);
+    expect(r.grossProfitCents).toBe(96);
+  });
   it("gross profit = revenue - pay - burden; zero hours gives zeros; negative when bill < pay", () => {
     expect(placementCents({ hours: 10, billRate: 20, payRate: 10 })).toEqual({
       revenueCents: 20000,
