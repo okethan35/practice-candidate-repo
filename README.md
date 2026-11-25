@@ -12,3 +12,15 @@ Express + TypeScript API with an in-memory store.
 ## Running the app
 
 Put `ATS_API_KEY=<your key>` in a `.env` file, then run `npm run dev`. The server listens on port 3000.
+
+## Running the web app
+
+1. Start the API on port 3000 (see "Running the app" above).
+2. In another terminal, run `cd web`.
+3. Run `npm install`.
+4. Run `npm run dev`.
+
+## What we cut
+
+- **Report pagination.** The gross-profit report returns every row in one response.
+- **Money beyond JavaScript's exact integer range.** Amounts above about $90 trillion are not supported, because they exceed the exact integer range of JavaScript numbers.
