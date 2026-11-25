@@ -1,4 +1,6 @@
-// Short, readable ids like "p_42".
+import { randomUUID } from "node:crypto";
+
+// Unique ids like "p_<uuid>".
 export function newId(prefix: string): string {
-  return `${prefix}_${Math.floor(Math.random() * 100)}`;
+  return `${prefix}_${randomUUID()}`;
 }
