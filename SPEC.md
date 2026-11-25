@@ -113,3 +113,55 @@ Each section has a heading and numbered rules; each rule is one testable stateme
 
 ## README
 48. The README states that every sync attempt that runs, ATS failures included, is kept in an in-memory run history that nothing displays yet.
+
+# Phase 3: Gross-profit report (`GET /api/reports/gross-profit`)
+
+## Auth
+49. `GET /api/reports/gross-profit` without `x-tenant-id` returns `401 { error: "missing x-tenant-id" }`; with an unknown tenant it returns `403 { error: "unknown tenant" }`.
+50. The report never calls the ATS, takes the sync lock, or changes the store or the run history. The body and every query parameter other than `week` are ignored.
+
+## Response
+51. An authorized request returns `200 { rows }` with one row per client of the calling tenant that has at least one placement in the selected set, as `{ clientId, clientName, revenueCents, payCents, burdenCents, grossProfitCents }`. `clientName` is the stored client's name (rule 13). A placement counts under its current `clientId`.
+52. The selected set is every stored placement of the calling tenant, with or without `externalId`, filtered by `week` (rule 57).
+53. When the selected set is empty, the response is `200 { rows: [] }`. This includes a tenant that has never synced.
+
+## Money
+54. For each placement, in integer cents:
+    - revenue = hours × bill rate × 100, rounded;
+    - pay = hours × pay rate × 100, rounded;
+    - burden = 12% of the rounded pay, rounded;
+    - gross profit = revenue − pay − burden.
+
+    Rounding goes to the nearest whole cent on the exact decimal value, with halves rounded up. 1 hour at a bill rate of `1.005` gives revenue `101`.
+55. A row's `revenueCents`, `payCents`, `burdenCents` and `grossProfitCents` are the sums of its placements' values. Every money field is an integer. Zero hours give zeros. A bill rate below the pay rate gives a negative `grossProfitCents`.
+56. With the default fixture, after one sync of each tenant, rows are (revenue / pay / burden / gross profit, in cents):
+    - all weeks, `t_alpha`: Globex 375200 / 244000 / 29280 / 101920, then Acme Corp 265468 / 182193 / 21863 / 61412;
+    - all weeks, `t_beta`: Initech 438000 / 292000 / 35040 / 110960, then Hooli 169200 / 108360 / 13003 / 47837;
+    - `week=2026-11-02`, `t_alpha`: Globex 220000 / 144000 / 17280 / 58720, then Acme Corp 172368 / 118493 / 14219 / 39656;
+    - `week=2026-11-02`, `t_beta`: Initech 228000 / 152000 / 18240 / 57760, then Hooli 169200 / 108360 / 13003 / 47837;
+    - `week=2026-11-09`, `t_alpha`: Globex 155200 / 100000 / 12000 / 43200, then Acme Corp 93100 / 63700 / 7644 / 21756;
+    - `week=2026-11-09`, `t_beta`: Initech 210000 / 140000 / 16800 / 53200 only.
+
+## Week filter
+57. `week` selects placements whose `weekStart` equals it exactly. A missing or empty `week` selects all weeks.
+58. A `week` that is not a real `YYYY-MM-DD` date by rule 7 (for example `banana`, `2026-02-30`, `2026-11-2` or ` 2026-11-02`), or a `week` given more than once, returns `200 { rows: [] }`. So does a real date with no placements.
+
+## Order
+59. Rows are sorted by `grossProfitCents`, highest first. Ties are broken by `clientName` in ascending code-unit order, then by `clientId` ascending.
+
+## Consistency
+60. While a sync for the tenant is in flight, the report returns `200` with the data from before that sync. After a `502`, it returns the same body as before. Two requests with no sync between them return identical bodies.
+61. A report never includes another tenant's placements or clients, even when both tenants have a client with the same name.
+62. A placement that sync moved to another client counts only under its current client. A client left with no placements in the selected set has no row.
+
+## Web
+63. The page has a tenant picker listing `t_alpha` and `t_beta`. Every request the page makes, "Sync now" included, sends the picked tenant in `x-tenant-id`.
+64. The page loads the report on open, on a tenant change, when the week is submitted (Enter or an "Apply" button), and after any "Sync now" response. A blank week loads all weeks. After an error, any of these triggers loads again.
+65. The week input is trimmed before it is checked. A trimmed value that is not a real `YYYY-MM-DD` date (rule 7) sends no request and shows `No records found. Use YYYY-MM-DD, e.g. 2026-11-02.`
+66. While a report request is pending, the page shows `Loading…`. Empty `rows` shows `No records found`. A non-200 response shows `Could not load report: <error>`, where `<error>` is the body's `error`, or `HTTP <status>` when there is none. A network failure shows `Could not load report: <message>`. Otherwise the page shows a table of client, revenue, pay, burden and gross profit, in `rows` order.
+67. Money is shown in US dollars with two decimals and thousands separators: `101920` → `$1,019.20`, `-1234` → `-$12.34`, `0` → `$0.00`.
+68. Only the latest report request's response is shown, and an earlier response that arrives later is discarded. A reload after "Sync now" is for the tenant picked when the sync response arrives.
+69. The week check, money formatting, the choice of what to show, and the latest-request rule live in plain `.ts` modules in `web/src/`. They are tested from `tests/*.test.ts`.
+
+## README
+70. The README states how to run the web app (`cd web`, `npm install`, `npm run dev`, with the API on port 3000). Under what was cut, it lists report pagination and money amounts beyond JavaScript's exact integer range (about $90 trillion). It keeps every phrase `tests/readme.test.ts` checks.
