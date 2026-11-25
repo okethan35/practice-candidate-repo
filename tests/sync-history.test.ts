@@ -40,6 +40,17 @@ describe("sync run history", () => {
     expect(runs("t_alpha")).toEqual([]);
   });
 
+  it("returns a copy of a non-empty history", async () => {
+    const { sync, runs } = setup();
+    await sync("t_alpha");
+    const first = runs("t_alpha");
+    expect(first).toHaveLength(1);
+    const snapshot = structuredClone(first);
+    first.push({ x: 1 });
+    first.length = 0;
+    expect(runs("t_alpha")).toEqual(snapshot);
+  });
+
   it("keeps separate histories per app on the same store", async () => {
     const store = createStore();
     const a = createApp(store);
@@ -101,10 +112,10 @@ describe("sync run history", () => {
   it("keeps entries oldest first", async () => {
     const { sync, runs } = setup();
     await sync("t_alpha");
+    await sync("t_alpha");
     mocked.mockRejectedValueOnce(new Error("boom"));
     await sync("t_alpha");
-    await sync("t_alpha");
-    expect(runs("t_alpha").map((e) => e.outcome)).toEqual(["success", "failed", "success"]);
+    expect(runs("t_alpha").map((e) => e.outcome)).toEqual(["success", "success", "failed"]);
   });
 
   it("appends nothing on 401 and 403", async () => {
