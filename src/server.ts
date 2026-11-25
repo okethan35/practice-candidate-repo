@@ -2,6 +2,7 @@ import express from "express";
 import { requireTenant } from "./auth";
 import { placementsRouter } from "./routes/placements";
 import { syncRouter } from "./routes/sync";
+import { syncStatusRouter } from "./routes/syncStatus";
 import { createStore, type Store } from "./store";
 import { createRunHistory } from "./sync/runHistory";
 
@@ -15,6 +16,7 @@ export function createApp(store: Store = createStore()) {
 
   app.use("/api", requireTenant(store));
   app.use("/api/placements", placementsRouter(store));
+  app.use("/api/sync/status", syncStatusRouter(store));
   app.use("/api/sync", syncRouter(store, history));
 
   return app;
