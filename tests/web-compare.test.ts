@@ -197,5 +197,6 @@ describe("fixture (rule 80)", () => {
     const v2 = loader.view as Extract<ComparisonView, { kind: "table" }>;
     expect(v2.kind).toBe("table");
     expect(v2.rows.map((r) => r.change)).toEqual([null, null]);
+    expect(v2.note).toBeUndefined();
   });
 });
