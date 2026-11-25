@@ -13,7 +13,7 @@ describe("newId uniqueness (rule 31)", () => {
     const c = newId("c");
     expect(p.length).toBeGreaterThan(0);
     expect(c.length).toBeGreaterThan(0);
-    expect(p).toContain("p");
-    expect(c).toContain("c");
+    expect(p.startsWith("p_")).toBe(true);
+    expect(c.startsWith("c_")).toBe(true);
   });
 });
